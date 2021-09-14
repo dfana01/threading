@@ -1,12 +1,8 @@
 from enum import Enum
 from threading import Thread, Condition
 from time import sleep
-import logging
-
-logging.basicConfig(level=logging.DEBUG, format='(%(threadName)-9s) %(message)s',)
-
-WAIT_TIME_GREEN_TO_YELLOW = 5
-WAIT_TIME_YELLOW_TO_RED = 1
+import pygame
+from pygame.sprite import Sprite, Group
 
 
 class Color(Enum):
@@ -15,55 +11,123 @@ class Color(Enum):
     GREEN = "GREEN"
 
 
-class Semaphore:
+class Direction(Enum):
+    NORTH = "NORTH"
+    SOUTH = "SOUTH"
+    EAST = "EAST"
+    WEST = "WEST"
 
-    def __init__(self, color: Color = None):
+
+class Context:
+    def __init__(self, current_directions: [Direction], velocity: int = 5):
+        self.current_directions = current_directions
+        self.velocity = velocity
+
+    def __str__(self) -> str:
+        return str(self.current_directions)
+
+
+class Semaphore(Thread, Sprite):
+
+    def __init__(self, name: str, direction: Direction, condition: Condition, position: tuple = (0, 0),
+                 context: Context = None, color: Color = None):
+        self.direction = direction
         self.current_light = color
+        self.set_light(color)
+        self.rect = self.image.get_rect(center=position)
+        self.condition = condition
+        self.context = context
+
+        Thread.__init__(self, name=name, args=(self.condition, ))
+        Sprite.__init__(self)
+        self.name = name
 
     def change(self, color: Color = None):
-        prev_color = self.current_light
+        self.set_light(color)
 
-        if color is not None:
-            self.current_light = color
-        else:
-            if self.current_light == Color.RED:
-                self.current_light = Color.GREEN
-            elif self.current_light == Color.YELLOW:
-                sleep(WAIT_TIME_YELLOW_TO_RED)
-                self.current_light = Color.RED
-            elif self.current_light == Color.GREEN:
-                sleep(WAIT_TIME_GREEN_TO_YELLOW)
-                self.current_light = Color.YELLOW
-            else:
-                self.current_light = Color.RED
-        logging.debug("From > %s, To > %s" % (prev_color, self.current_light))
+    def set_light(self, color: Color):
+        self.current_light = color
+        src = r"resources/%s-%s.png" % (str(self.direction.value).lower(), str(color.value).lower())
+        self.image = pygame.image.load(src).convert_alpha()
+
+    def __str__(self) -> str:
+        return "%s: %s" % (self.name, str(self.current_light))
+
+    def run(self):
+        with self.condition:
+            while True:
+                self.condition.acquire()
+                self.change(Color.GREEN)
+                sleep(5)
+                self.change(Color.YELLOW)
+                sleep(1)
+                self.change(Color.RED)
+                self.condition.wait()
+
+    def stop(self):
+        self.join()
 
 
-semaphore1 = Semaphore(color=Color.RED)
-semaphore2 = Semaphore(color=Color.RED)
-semaphore3 = Semaphore(color=Color.RED)
-semaphore4 = Semaphore(color=Color.RED)
+class Manager(Thread):
+    def __init__(self, condition: Condition = Condition(), context: Context = None):
+        self.condition = condition
+        self.is_running = True
+        self.context = context
+        super().__init__(name="manager", args=(self.condition, ))
 
+    def run(self):
+        with self.condition:
+            while self.is_running:
+                self.condition.acquire()
+                self.condition.notify()
+                self.condition.wait(self.context.velocity)
 
-def semaphore_handle(condition: Condition, semaphore: Semaphore):
-    while True:
-        with condition:
-            semaphore.change()
-            condition.notify()
+    def stop(self):
+        self.is_running = False
+        self.join()
 
 
 def main():
+    # Init
+    pygame.init()
+    screen = pygame.display.set_mode((825, 599))
+
+    # Headless process
     condition = Condition()
+    context = Context(current_directions=[Direction.NORTH, Direction.SOUTH])
 
-    thread1 = Thread(name="semaphore1", target=semaphore_handle, args=(condition, semaphore1))
-    thread2 = Thread(name="semaphore2", target=semaphore_handle, args=(condition, semaphore2))
-    thread3 = Thread(name="semaphore3", target=semaphore_handle, args=(condition, semaphore3))
-    thread4 = Thread(name="semaphore4", target=semaphore_handle, args=(condition, semaphore4))
+    manager = Manager(condition=condition, context=context)
 
-    thread1.start()
-    thread2.start()
-    thread3.start()
-    thread4.start()
+    semaphore1 = Semaphore(name="semaphore1", condition=condition, context=context, position=(452, 252),
+                           direction=Direction.NORTH, color=Color.RED)
+    semaphore2 = Semaphore(name="semaphore2", condition=condition, context=context, position=(415, 388),
+                           direction=Direction.SOUTH, color=Color.RED)
+    semaphore3 = Semaphore(name="semaphore3", condition=condition, context=context, position=(565, 330),
+                           direction=Direction.EAST, color=Color.RED)
+    semaphore4 = Semaphore(name="semaphore4", condition=condition, context=context, position=(330, 328),
+                           direction=Direction.WEST, color=Color.RED)
+
+    semaphore1.start()
+    semaphore2.start()
+    semaphore3.start()
+    semaphore4.start()
+
+    manager.start()
+
+    # Animations
+    image = pygame.image.load(r'resources/map.png')
+    group = Group(semaphore1, semaphore2, semaphore3, semaphore4)
+
+    running = True
+
+    while running:
+        screen.blit(image, (0, 0))
+        group.draw(screen)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        pygame.display.update()
+    pygame.quit()
 
 
 if __name__ == '__main__':
