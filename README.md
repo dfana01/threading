@@ -1,5 +1,7 @@
 # Practice #1 - Threading
 
+<img alt="overview" src="resources/overview.gif" />
+
 ## Document Purpose
 
 This document has as purpose to define in big scale all project decision and component.
