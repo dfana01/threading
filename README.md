@@ -27,7 +27,7 @@ The solution is a traffic light simulation using thread. The main idea behind th
 
 For the thread synchronization process, we use conditional variable to notify when the thread is available, and the other thread can process with the execution also we follow the architecture of shared memory model to sync the thread information.
 
-<img alt="Domain" src="resources/components.png.png" />
+<img alt="Components" src="resources/components.png" />
 
 References 
 
