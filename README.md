@@ -1,5 +1,7 @@
 # Practice #1 - Threading
 
+Sources: https://github.com/DanteFanaBadia/threading
+
 <img alt="overview" src="resources/overview.gif" />
 
 ## Document Purpose
