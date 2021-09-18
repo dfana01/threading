@@ -1,0 +1,15 @@
+@startuml
+
+[Semaphore1] --> (Context) : use
+[Semaphore2] --> (Context) : use
+[Semaphore3] --> (Context) : use
+[Semaphore4] --> (Context) : use
+
+[Semaphore1] -up-> (Private Memory 1) : has
+[Semaphore2] -up-> (Private Memory 2) : has
+[Semaphore3] -up-> (Private Memory 3) : has
+[Semaphore4] -up-> (Private Memory 4) : has
+
+[Manager] -up-> (Context) : use
+
+@enduml
