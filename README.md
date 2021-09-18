@@ -1,6 +1,6 @@
 # Practice #1 - Threading
 
-Sources: https://github.com/DanteFanaBadia/threading
+Sources: [https://github.com/DanteFanaBadia/threading](https://github.com/DanteFanaBadia/threading)
 
 <img alt="overview" src="resources/overview.gif" />
 
@@ -35,8 +35,8 @@ For the thread synchronization process, we use conditional variable to notify wh
 
 References 
 
-- Conditional variable: https://docs.python.org/3/library/threading.html#threading.Conditio
-- Shared Memory Model: https://hpc-tutorials.llnl.gov/posix/designing_threaded_programs/#shared-memory-model
+- Conditional variable: [https://docs.python.org/3/library/threading.html#threading.Condition](https://docs.python.org/3/library/threading.html#threading.Condition)
+- Shared Memory Model: [https://hpc-tutorials.llnl.gov/posix/designing_threaded_programs/#shared-memory-model](https://hpc-tutorials.llnl.gov/posix/designing_threaded_programs/#shared-memory-model)
 
 ## Scope 
 - [*] You have the freedom to place the traffic lights at the points where the desired flow is resolved.
