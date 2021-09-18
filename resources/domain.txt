@@ -1,0 +1,26 @@
+@startuml
+
+title Traffic lights simulation
+
+(Color)
+(Direction)
+(Context)
+(Semaphore)
+(Vehicle)
+(Manager)
+(Crosswalk)
+
+
+(Semaphore)-up->(Color): "is in"
+(Semaphore)-up->(Direction): has
+(Semaphore)-up->(Crosswalk): has
+(Semaphore)-up->(Context): has
+note right of Semaphore : Execute in a thread, read the \n context and change the light
+
+(Manager)-up->(Context): has
+note left of Manager : Execute in a thread, modify the context \n and notify when the semaphore need to change
+
+(Vehicle)-up->(Semaphore): "looks"
+note right of Vehicle : Looks the semaphore light and respect \n the crosswalk when is on green and blue light
+
+@enduml
